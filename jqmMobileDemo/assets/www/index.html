@@ -1,0 +1,257 @@
+<!-- 
+author :Warren
+http://www.wglong.com
+ -->
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Warren-JQM+phonegap实战Demo</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport"
+	content="user-scalable=no, width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="./css/frame/jquery.mobile-1.3.0.min.css">
+<link rel="stylesheet" href="./css/frame/ios_inspired/styles.css"
+	rel="stylesheet" />
+<link rel="stylesheet" href="./css/global.css">
+<script type="text/javascript" charset="utf-8"
+	src="./js/frame/iscroll.js"></script>
+<script type="text/javascript" charset="utf-8"
+	src="./js/frame/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" charset="utf-8"
+	src="./js/frame/jquery.mobile-1.3.0.min.js"></script>
+<script type="text/javascript" charset="utf-8"
+	src="./js/frame/cordova-2.6.0.js"></script>
+<script type="text/javascript" charset="utf-8" src="./js/global.js"></script>
+
+</head>
+<body>
+	<div data-role="page" id="indexPage" data-dom-cache="true">
+		<script type="text/javascript">
+			var isInit = 0;
+			var myScroll, pullUpEl, pullUpOffset, generatedCount = 0;
+
+			/**
+			 * 上拉刷新
+			 * myScroll.refresh();		// 数据加载完成后，调用界面更新方法
+			 */
+			function pullUpAction() {
+				setTimeout(loadData, 1000); // <-- Simulate network congestion, remove setTimeout from production!
+			}
+
+			/**
+			 * 初始化iScroll控件
+			 */
+			function loaded() {
+				if (myScroll != null) {
+					myScroll.destroy();
+				}
+
+				pullUpEl = document.getElementById('pullUp');
+				pullUpOffset = pullUpEl.offsetHeight;
+
+				myScroll = new iScroll(
+						'wrapperIndex',
+						{
+							//scrollbarClass: 'myScrollbar', /* 自定义样式 */
+							useTransition : false, /* 此属性不知用意，本人从true改为false */
+							//topOffset: pullDownOffset,
+							onRefresh : function() {
+								if (pullUpEl.className.match('loading')) {
+									pullUpEl.className = '';
+									pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多...';
+								}
+							},
+							onScrollMove : function() {
+								if (this.y < (this.maxScrollY - 5)
+										&& !pullUpEl.className.match('flip')) {
+									pullUpEl.className = 'flip';
+									pullUpEl.querySelector('.pullUpLabel').innerHTML = '松手开始更新...';
+									this.maxScrollY = this.maxScrollY;
+								} else if (this.y > (this.maxScrollY + 5)
+										&& pullUpEl.className.match('flip')) {
+									pullUpEl.className = '';
+									pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多...';
+									this.maxScrollY = pullUpOffset;
+								}
+							},
+							onScrollEnd : function() {
+								if (pullUpEl.className.match('flip')) {
+									pullUpEl.className = 'loading';
+									pullUpEl.querySelector('.pullUpLabel').innerHTML = '加载中...';
+									pullUpAction(); // Execute custom function (ajax call?)
+								}
+							}
+							
+						});
+				
+				if(isInit==0){
+					//load datas
+					loadData();
+					isInit=1;
+				}
+			}
+
+			var startNum = -1;
+			var count = -1;
+			function loadData() {
+				showLoading();
+				var params = {
+					startNum : startNum,
+					count : count
+				};
+
+				$.ajax({
+					async : false,
+					url : serverURL + '/ajax!jqmMobileDemoList', // 跨域URL
+					type : 'get',
+					dataType : 'jsonp',
+					jsonp : 'jsoncallback', //默认callback
+					data : params,
+					timeout : 5000,
+					beforeSend : function() { //jsonp 方式此方法不被触发。原因可能是dataType如果指定为jsonp的话，就已经不是ajax事件了
+					},
+					success : function(json) { //客户端jquery预先定义好的callback函数，成功获取跨域服务器上的json数据后，会动态执行这个callback函数 
+						var jsonObject = eval("(" + json + ")");
+						startNum = Number(jsonObject.startNum);
+						count = Number(jsonObject.count);
+						$("#contentList").append(jsonObject.str).listview(
+								'refresh');
+					},
+					complete : function(XMLHttpRequest, textStatus) {
+						setTimeout(function() { // <-- Simulate network congestion, remove setTimeout from production!			
+							myScroll.refresh(); // 数据加载完成后，调用界面更新方法 Remember to refresh when contents are loaded (ie: on ajax completion)
+							hideLoading();
+						}, 1500);
+						if (startNum > count) {
+							myAlert('已加载完全部信息');
+						}
+					},
+					error : function(xhr) {
+						//jsonp 方式此方法不被触发
+						//请求出错处理 
+						myAlert("请求出错(请检查相关度网络状况.)");
+					}
+				});
+
+			}
+
+			function update() {
+				startNum = -1;
+				count = -1;
+				$("#contentList").html("");
+				loadData();
+				$("#contentList").listview('refresh');
+				myScroll.refresh();
+			}
+			
+			$("#indexPage").live("pageinit", function() {
+				startNum = -1;
+				count = -1;
+				isInit==0;
+			});
+			$("#indexPage").live("pagebeforeshow", function() {
+				//加载iscroll
+				setTimeout(loaded, 200);
+			});
+			$("#indexPage").live("pageshow", function() {
+			});
+		</script>
+		<style type="text/css" media="all">
+/**
+	 *
+	 * 下拉样式 Pull down styles
+	 *
+	 */
+#pullDown,#pullUp {
+	background: #fff;
+	height: 50px;
+	line-height: 40px;
+	padding: 5px 10px;
+	border-bottom: 1px solid #ccc;
+	font-weight: bold;
+	font-size: 14px;
+	color: #888;
+}
+
+#pullUp {
+	padding: 15px 10px 0px 0px;
+}
+
+#pullDown .pullDownIcon,#pullUp .pullUpIcon {
+	display: block;
+	float: left;
+	width: 40px;
+	height: 40px;
+	background: url(./css/frame/scrollbar/pull-icon@2x.png) 0 0 no-repeat;
+	-webkit-background-size: 40px 80px;
+	background-size: 40px 80px;
+	-webkit-transition-property: -webkit-transform;
+	-webkit-transition-duration: 250ms;
+}
+
+#pullDown .pullDownIcon {
+	-webkit-transform: rotate(0deg) translateZ(0);
+}
+
+#pullUp .pullUpIcon {
+	-webkit-transform: rotate(-180deg) translateZ(0);
+}
+
+#pullDown.flip .pullDownIcon {
+	-webkit-transform: rotate(-180deg) translateZ(0);
+}
+
+#pullUp.flip .pullUpIcon {
+	-webkit-transform: rotate(0deg) translateZ(0);
+}
+
+#pullDown.loading .pullDownIcon,#pullUp.loading .pullUpIcon {
+	background-position: 0 100%;
+	-webkit-transform: rotate(0deg) translateZ(0);
+	-webkit-transition-duration: 0ms;
+	-webkit-animation-name: loading;
+	-webkit-animation-duration: 2s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: linear;
+}
+
+@
+-webkit-keyframes loading {from { -webkit-transform:rotate(0deg)translateZ(0);
+	
+}
+
+to {
+	-webkit-transform: rotate(360deg) translateZ(0);
+}
+}
+</style>
+
+		<div data-role="header" data-position="fixed" data-theme="b">
+			<a href="javascript:update();" data-role="button" data-inline="true"
+				data-icon="refresh" class="ui-btn-left">刷新</a>
+			<h1>最新动态</h1>
+			<a href="javascript:goTo('input.html')" data-role="button" data-inline="true"
+				data-icon="Plus" class="ui-btn-right">发布信息</a>
+		</div>
+		<div data-role="content" data-theme="d">
+			<div id="wrapperIndex" class="wrapper">
+				<div id="scrollerIndex" class="scroller">
+					<ul data-role="listview" id="contentList" class="contentList">
+					</ul>
+					<div id="pullUp">
+						<span class="pullUpIcon"></span><span class="pullUpLabel">上拉加载更多...</span>
+					</div>
+
+				</div>
+			</div>
+		</div>
+		<div id="footer" class="nav-style" data-role="footer" data-theme="a"
+			data-position="fixed">
+			<h1>&nbsp;</h1>
+		</div>
+		
+	</div>
+
+	
+</body>
+</html>
