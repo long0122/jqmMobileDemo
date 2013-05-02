@@ -1,8 +1,8 @@
-¸ÐÐ»ÄúµÄÖ§³Ö£¡
-
-Ï£Íû¿ÉÒÔ»ã¾Û¸ü¶à¸üºÃµÄÎÄÕÂºÍDemo,·½±ã´ó¼ÒÑ§Ï°½»Á÷£¡
-
-Èç¹ûÄúÓÐºÃµÄdemo¼ÇµÃ·ÖÏí¸øÎÒÅ¶£¡^_^
+é¡¹ç›®åŠŸèƒ½ï¼š
+1ã€ç»“åˆiscrollåŠ¨æ€åŠ è½½æ•°æ®
+2ã€ç»“åˆiscrollä¸Šæ‹‰ç¿»é¡µ
+3ã€å›¾ç‰‡ä¸Šä¼ 
+4ã€phonegapæŽ§åˆ¶è¿”å›žé€€å‡ºç¨‹åº
 
 ---Warren
 http://www.wglong.com

@@ -121,10 +121,11 @@ http://www.wglong.com
 						setTimeout(function() { // <-- Simulate network congestion, remove setTimeout from production!			
 							myScroll.refresh(); // 数据加载完成后，调用界面更新方法 Remember to refresh when contents are loaded (ie: on ajax completion)
 							hideLoading();
+							if (startNum >= count) {
+								myAlert('已加载完全部信息');
+							}
 						}, 1500);
-						if (startNum > count) {
-							myAlert('已加载完全部信息');
-						}
+						
 					},
 					error : function(xhr) {
 						//jsonp 方式此方法不被触发
