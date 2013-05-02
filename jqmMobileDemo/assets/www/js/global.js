@@ -23,7 +23,7 @@ function hideLoading() {
 
 function showAlert(text) {
 	$.mobile.loadingMessageTextVisible = true;
-	$.mobile.showPageLoadingMsg("e", text, true);
+	$.mobile.showPageLoadingMsg("a", text, true);
 }
 function myAlert(text) {
 	showAlert(text);
@@ -64,20 +64,23 @@ function eventBackButton() {
 	 if($.mobile.activePage.is('#indexPage')){
 		 myAlert('再点击一次退出!');
 			document.removeEventListener("backbutton", eventBackButton, false); // 注销返回键
+			document.addEventListener("backbutton", exitApp, false);//绑定退出事件
 			// 3秒后重新注册
 			var intervalID = window.setInterval(function() {
 				window.clearInterval(intervalID);
+				document.removeEventListener("backbutton", exitApp, false); // 注销返回键
 				document.addEventListener("backbutton", eventBackButton, false); // 返回键
 			}, 3000);
      }
      //else {
      //    navigator.app.backHistory();
      //}
-	 
-	
-	
+	 	
 }
 
+function exitApp(){
+	navigator.app.exitApp();
+}
 
 // 菜单键
 function eventMenuButton() {
